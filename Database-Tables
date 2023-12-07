@@ -1,0 +1,27 @@
+Table 1:
+Rooms - 
++------------+---------+------+-----+---------+-------+
+| Field      | Type    | Null | Key | Default | Extra |
++------------+---------+------+-----+---------+-------+
+| roomNumber | int     | NO   |     | NULL    |       |
+| type       | char(1) | YES  |     | NULL    |       |
+| stype      | char(1) | YES  |     | NULL    |       |
+| ac         | char(1) | YES  |     | NULL    |       |
+| rent       | double  | YES  |     | NULL    |       |
+| status     | int     | YES  |     | NULL    |       |
++------------+---------+------+-----+---------+-------+
+
+Table 2:
+Customers:
++-----------------+--------------+------+-----+---------+-------+
+| Field           | Type         | Null | Key | Default | Extra |
++-----------------+--------------+------+-----+---------+-------+
+| id              | int          | NO   | PRI | NULL    |       |
+| name            | varchar(255) | YES  |     | NULL    |       |
+| address         | varchar(255) | YES  |     | NULL    |       |
+| phone           | varchar(20)  | YES  |     | NULL    |       |
+| roomNumber      | int          | YES  |     | NULL    |       |
+| bill            | double       | YES  |     | NULL    |       |
+| payment_advance | double       | YES  |     | NULL    |       |
+| status          | int          | YES  |     | NULL    |       |
++-----------------+--------------+------+-----+---------+-------+
