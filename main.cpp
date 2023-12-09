@@ -18,8 +18,8 @@ private:
 	double payment_advance;
 	int status;
 	int days = 0;
-	sql::Connection *con;
-	Customer(sql::Connection *dbConnection) : con(dbConnection), id(0), roomNumber(0), status(0) {}
+	Connection *con;
+	Customer(Connection *dbConnection) : con(dbConnection), id(0), roomNumber(0), status(0) {}
 	void accept();			   // ACCEPT CUSTOMER DETAILS
 	void display();			   // DISPLAY CUSTOMER DETAILS
 	void insertIntoDatabase(); // Inserting values into database
@@ -60,7 +60,7 @@ void Customer::display()
 
 void Customer::insertIntoDatabase()
 {
-	sql::PreparedStatement *pstmt;
+	PreparedStatement *pstmt;
 	pstmt = con->prepareStatement("INSERT INTO customers (id, name, address, phone, roomNumber, bill, payment_advance, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 	pstmt->setInt(1, id);
 	pstmt->setString(2, name);
@@ -82,10 +82,10 @@ private:
 	int roomNumber;
 	double rent;
 	int status = 0;
-	sql::Connection *con;
+	Connection *con;
 
 public:
-	room(sql::Connection *dbConnection) : con(dbConnection) {}
+	room(Connection *dbConnection) : con(dbConnection) {}
 	friend class Hotel;
 	void acceptroom(int rno); // ADD ROOMS TO HOTEL DATABASE
 	void displayroom();		  // DISPLAY ROOMS
@@ -103,7 +103,7 @@ public:
 	{
 		try
 		{
-			sql::PreparedStatement *pstmt;
+			PreparedStatement *pstmt;
 			pstmt = con->prepareStatement("INSERT INTO rooms VALUES (?, ?, ?, ?, ?, ?)");
 			pstmt->setInt(1, roomNumber);
 			pstmt->setString(2, string(1, type));
@@ -114,7 +114,7 @@ public:
 			pstmt->executeUpdate();
 			delete pstmt;
 		}
-		catch (sql::SQLException &e)
+		catch (SQLException &e)
 		{
 			// Handle SQL exception
 			cerr << "SQL Error: " << e.what() << endl;
@@ -167,10 +167,10 @@ void room::acceptroom(int rno)
 
 void room::displayroom()
 {
-	sql::PreparedStatement *pstmt;
+	PreparedStatement *pstmt;
 	pstmt = con->prepareStatement("SELECT * FROM rooms WHERE roomNumber = ?");
 	pstmt->setInt(1, roomNumber);
-	sql::ResultSet *res = pstmt->executeQuery();
+	ResultSet *res = pstmt->executeQuery();
 
 	if (res->next())
 	{
@@ -198,8 +198,8 @@ void room::displayroom()
 class Hotel
 {
 private:
-	sql::mysql::MySQL_Driver *driver;
-	sql::Connection *con;
+	myMySQL_Driver *driver;
+	Connection *con;
 
 public:
 public:
@@ -214,12 +214,12 @@ public:
 	Hotel()
 	{
 		// Initializing MySQL Connector/C++
-		driver = sql::mysql::get_mysql_driver_instance();
+		driver = myget_mysql_driver_instance();
 		con = driver->connect("HostName-PORT", "Username", "Password"); // Host Name , Username , Password
 		// Connect to the specific database
 		con->setSchema("Database_Name"); // Database Name "Database_Name"
 		// Create the 'rooms' table if it doesn't exist
-		sql::Statement *stmt = con->createStatement();
+		Statement *stmt = con->createStatement();
 		stmt->execute("CREATE TABLE IF NOT EXISTS rooms ("
 					  "roomNumber INT PRIMARY KEY, "
 					  "type CHAR(1), "
@@ -286,12 +286,12 @@ void Hotel::searchroom() // Searching rooms in database....
 	cout << "Search Result:" << endl;
 	cout << "| Room No.\t|\tAC/Non-AC\t|\tType\t\t|\tStype\t\t|\tRent\t\t|\tAvailability  \t|" << endl;
 
-	sql::PreparedStatement *pstmt;
+	PreparedStatement *pstmt;
 	pstmt = con->prepareStatement("SELECT * FROM rooms WHERE ac = ? AND type = ? AND stype = ?");
 	pstmt->setString(1, string(1, ac));
 	pstmt->setString(2, string(1, type));
 	pstmt->setString(3, string(1, stype));
-	sql::ResultSet *res = pstmt->executeQuery();
+	ResultSet *res = pstmt->executeQuery();
 
 	while (res->next())
 	{
@@ -335,10 +335,10 @@ void Hotel::CheckIn()
 	}
 
 	// Check if the room is unoccupied
-	sql::PreparedStatement *pstmtCheckRoom;
+	PreparedStatement *pstmtCheckRoom;
 	pstmtCheckRoom = con->prepareStatement("SELECT * FROM rooms WHERE roomNumber = ? AND status = 0");
 	pstmtCheckRoom->setInt(1, rno);
-	sql::ResultSet *resCheckRoom = pstmtCheckRoom->executeQuery();
+	ResultSet *resCheckRoom = pstmtCheckRoom->executeQuery();
 
 	if (resCheckRoom->next())
 	{
@@ -356,10 +356,10 @@ void Hotel::CheckIn()
 			cin >> customer.days;
 
 			// Accessing rent from the database
-			sql::PreparedStatement *pstmtRent;
+			PreparedStatement *pstmtRent;
 			pstmtRent = con->prepareStatement("SELECT rent FROM rooms WHERE roomNumber = ?");
 			pstmtRent->setInt(1, rno);
-			sql::ResultSet *resRent = pstmtRent->executeQuery();
+			ResultSet *resRent = pstmtRent->executeQuery();
 
 			if (resRent->next())
 			{
@@ -376,7 +376,7 @@ void Hotel::CheckIn()
 				cout << "Thank you. Booking confirmed." << endl;
 				cout << "--------------------------------------------------------------" << endl;
 
-				sql::PreparedStatement *pstmtUpdateRoom; // Updating room status to booked
+				PreparedStatement *pstmtUpdateRoom; // Updating room status to booked
 				pstmtUpdateRoom = con->prepareStatement("UPDATE rooms SET status = 1 WHERE roomNumber = ?");
 				pstmtUpdateRoom->setInt(1, rno);
 				pstmtUpdateRoom->executeUpdate();
@@ -416,10 +416,10 @@ void Hotel::CheckOut()
 	}
 
 	// Fetching customer details from the database
-	sql::PreparedStatement *pstmtCust;
+	PreparedStatement *pstmtCust;
 	pstmtCust = con->prepareStatement("SELECT * FROM customers WHERE roomNumber = ? AND status = 1");
 	pstmtCust->setInt(1, rno);
-	sql::ResultSet *resCust = pstmtCust->executeQuery();
+	ResultSet *resCust = pstmtCust->executeQuery();
 
 	if (resCust->next())
 	{
@@ -436,13 +436,13 @@ void Hotel::CheckOut()
 		cout << "Hence, pending payment = Rs." << totalBill - advPayment << endl;
 
 		// Updating room status to unoccupied
-		sql::PreparedStatement *pstmtRoom;
+		PreparedStatement *pstmtRoom;
 		pstmtRoom = con->prepareStatement("UPDATE rooms SET status = 0 WHERE roomNumber = ?");
 		pstmtRoom->setInt(1, rno);
 		pstmtRoom->executeUpdate();
 
 		// Updating customer status to checked out
-		sql::PreparedStatement *pstmtUpdateCust;
+		PreparedStatement *pstmtUpdateCust;
 		pstmtUpdateCust = con->prepareStatement("UPDATE customers SET status = 0 WHERE roomNumber = ?");
 		pstmtUpdateCust->setInt(1, rno);
 		pstmtUpdateCust->executeUpdate();
@@ -464,10 +464,10 @@ void Hotel::searchcust()
 	cout << "Enter customer ID: ";
 	cin >> id;
 
-	sql::PreparedStatement *pstmt;
+	PreparedStatement *pstmt;
 	pstmt = con->prepareStatement("SELECT * FROM customers WHERE id = ?");
 	pstmt->setInt(1, id);
-	sql::ResultSet *res = pstmt->executeQuery();
+	ResultSet *res = pstmt->executeQuery();
 
 	cout << "    Name";
 	cout << "\t\t Phone";
@@ -491,9 +491,9 @@ void Hotel::availability() // Checking the avalable room from database
 	cout << "The list of all available rooms:" << endl;
 	cout << "| Room No.\t|\tAC/Non-AC\t|\tType\t\t|\tStype\t\t|\tRent\t\t|\tAvailability  \t|" << endl;
 
-	sql::PreparedStatement *pstmt;
+	PreparedStatement *pstmt;
 	pstmt = con->prepareStatement("SELECT * FROM rooms");
-	sql::ResultSet *res = pstmt->executeQuery();
+	ResultSet *res = pstmt->executeQuery();
 	while (res->next())
 	{
 		cout << "| " << res->getInt("roomNumber") << ".\t\t|\t" << res->getString("ac") << "\t\t|\t"
@@ -520,10 +520,10 @@ void Hotel::Summary()
 	cout << "|   ID     |   Name                             |   Address                          |   Phone        |   Room No.     |   Bill                 |     Advance Payment    |     Status      |" << endl;
 	cout << "===================================================================================================================================================================================================" << endl;
 
-	sql::PreparedStatement *pstmt;
+	PreparedStatement *pstmt;
 	pstmt = con->prepareStatement("SELECT * FROM customers");
 
-	sql::ResultSet *res = pstmt->executeQuery();
+	ResultSet *res = pstmt->executeQuery();
 
 	while (res->next())
 	{
